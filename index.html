@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="data:,">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src 'none'">
+<title>歯科衛生士 2年生 自習クイズ</title>
+<style>
+:root{--c:#0f766e;--bg:#f6f7f8;--ok:#15803d;--ng:#b91c1c;--mut:#6b7280}
+*{box-sizing:border-box}
+html,body{overflow-x:hidden}
+body{margin:0;font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:#111;font-size:17px;line-height:1.6}
+header{background:var(--c);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+header h1{font-size:17px;margin:0}
+header button{background:transparent;border:1px solid #fff8;color:#fff;border-radius:8px;padding:4px 10px;font-size:14px}
+main{max-width:560px;margin:0 auto;padding:16px}
+.card{background:#fff;border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px #0001;overflow-wrap:anywhere}
+.btn{display:block;width:100%;padding:14px;border-radius:10px;border:none;background:var(--c);color:#fff;font-size:17px;font-weight:600;margin-top:10px}
+.btn.sub{background:#fff;color:var(--c);border:2px solid var(--c)}
+.btn.warn{background:#fff;color:var(--ng);border:2px solid var(--ng)}
+.btn:disabled{opacity:.4}
+.banner{background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:14px}
+.note{background:#e0f2fe;border:1px solid #0284c7;border-radius:10px;padding:8px 12px;font-size:14px;margin:8px 0}
+.choice{display:block;width:100%;text-align:left;padding:12px 14px;margin:8px 0;border:2px solid #d1d5db;border-radius:10px;background:#fff;font-size:16px}
+.choice.sel{border-color:var(--c);background:#ecfdf5}
+.choice.ok{border-color:var(--ok);background:#dcfce7}
+.choice.ng{border-color:var(--ng);background:#fee2e2}
+.choice .cimg{display:block;margin-top:6px}
+.meta{color:var(--mut);font-size:13px}
+.bar{height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;margin:6px 0 12px}
+.bar>div{height:100%;background:var(--c)}
+.score{font-size:44px;font-weight:700;text-align:center;color:var(--c)}
+table{width:100%;border-collapse:collapse;font-size:15px}
+td,th{padding:6px 4px;border-bottom:1px solid #eee;text-align:left;vertical-align:top}
+.up{color:var(--ok);font-weight:600}.down{color:var(--ng);font-weight:600}
+u.ul{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2px}
+.exp{background:#f0fdfa;border-left:4px solid var(--c);padding:8px 10px;margin-top:8px;font-size:15px;white-space:pre-wrap}
+.qtext{white-space:pre-wrap}
+.mhint{display:inline-block;background:#fde68a;border-radius:6px;padding:2px 8px;font-size:14px;font-weight:700;margin:6px 0}
+.choice .box{display:inline-block;width:1.2em}
+label{display:block;margin:8px 0 4px;font-size:15px}
+select,input[type=file]{font-size:16px;padding:6px;width:100%;max-width:100%}
+.figs{margin:10px 0}
+figure{margin:0 0 10px}
+figure img{display:block;max-width:100%;height:auto;border:1px solid #e5e7eb;border-radius:8px;background:#fff;cursor:zoom-in}
+figcaption{font-size:12px;color:var(--mut)}
+.thumb img{max-height:120px;width:auto}
+.imgerr{border:2px dashed var(--ng);background:#fef2f2;color:var(--ng);border-radius:8px;padding:10px;font-size:14px}
+#viewer{position:fixed;inset:0;background:#000e;z-index:50;display:flex;flex-direction:column}
+#viewer.hidden{display:none}
+.vbar{display:flex;gap:6px;padding:8px;justify-content:flex-end}
+.vbar button{font-size:18px;min-width:48px;padding:8px 10px;border-radius:8px;border:none;background:#fff;color:#111}
+.vstage{flex:1;overflow:hidden;touch-action:none;display:flex;align-items:center;justify-content:center}
+.vstage img{max-width:100%;max-height:100%;transform-origin:center center;user-select:none;-webkit-user-drag:none;background:#fff}
+.vcap{color:#fff;font-size:13px;padding:6px 10px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header><h1 id="appTitle">歯科衛生士 2年生 自習クイズ</h1><button id="btnSettings" aria-label="設定">設定</button></header>
+<main id="app"></main>
+<div id="viewer" class="hidden" role="dialog" aria-label="画像の拡大">
+  <div class="vbar"><button id="vZoomOut" aria-label="縮小">－</button><button id="vReset" aria-label="元の大きさ">等倍</button><button id="vZoomIn" aria-label="拡大">＋</button><button id="vClose" aria-label="閉じる">閉じる ✕</button></div>
+  <div class="vstage" id="vStage"><img id="vImg" alt=""></div>
+  <div class="vcap" id="vCap"></div>
+</div>
+<script src="imgs.js"></script>
+<script src="questions.js"></script>
+<script>
+(function(){
+"use strict";
+/* ===== 保存（このブラウザの中だけ。外へは送らない） ===== */
+var KEY="zen2q.v43.";
+function load(k,d){try{var v=localStorage.getItem(KEY+k);return v?JSON.parse(v):d}catch(e){return d}}
+function save(k,v){localStorage.setItem(KEY+k,JSON.stringify(v))}
+function del(k){localStorage.removeItem(KEY+k)}
+var DEFAULT_PER_ROUND=25;
+
+/* ===== 問題データ ===== */
+function getBank(){var b=load("bank",null);return b&&b.questions&&b.questions.length?b:window.QUIZ_BANK}
+/* 画像の参照は app/images/ の中の相対ファイル名だけを許す（外部URL・上の階層は不可） */
+var REF_RE=/^[A-Za-z0-9_\-][A-Za-z0-9_\-.\/]*\.(png|jpe?g|gif|webp|svg)$/i;
+function refProblem(f){
+  if(!f) return "ファイル名が空です";
+  if(/:\/\/|^\/|\.\.|\\/.test(f)) return "images フォルダの外を指しています";
+  if(!REF_RE.test(f)) return "使えないファイル名です（半角英数字・-・_、拡張子 png/jpg/gif/webp/svg）";
+  return "";
+}
+/* 問題ごとの画像リスト（問題のレコードそのものに結びつける） */
+function qImages(q){
+  var out=[];
+  if(Array.isArray(q.images)) q.images.forEach(function(x){ if(typeof x==="string") out.push({file:x,alt:"",sensitive:false}); else if(x) out.push({file:x.file||"",alt:x.alt||"",sensitive:!!x.sensitive}) });
+  else if(q.image) out.push({file:q.image,alt:q.image_alt||""});
+  return out;
+}
+function qChoices(q){return q.choices.map(function(c){return typeof c==="string"?{text:c,image:"",alt:""}:{text:c.text||"",image:c.image||"",alt:c.alt||""}})}
+/* 正解の番号のリスト（1始まり）。2つ選ぶ問題は [2,4] */
+function answerList(a){
+  if(Array.isArray(a)) return a.map(Number).sort(function(x,y){return x-y});
+  return String(a==null?"":a).split(/[;、,\s]+/).filter(function(x){return x!==""}).map(Number).sort(function(x,y){return x-y});
+}
+function validate(b){
+  if(!b||!Array.isArray(b.questions)||!b.questions.length) throw new Error("問題が1問もありません");
+  var ids={};
+  b.questions.forEach(function(q,i){
+    var n=(i+1)+"問目";
+    if(!q.id) throw new Error(n+"：id がありません");
+    if(ids[q.id]) throw new Error(n+"：id「"+q.id+"」が重なっています");
+    ids[q.id]=1;
+    if(!q.q) throw new Error(n+"（"+q.id+"）：問題文がありません");
+    [q.q,q.explain||""].concat((q.choices||[]).map(function(c){return typeof c==="string"?c:(c&&c.text)||""})).forEach(function(t){if(!uOK(t)) throw new Error(n+"（"+q.id+"）：下線の印 [u]…[/u] の組み合わせがまちがっています")});
+    if(!Array.isArray(q.choices)||q.choices.length<2) throw new Error(n+"（"+q.id+"）：選択肢が2つ以上必要です");
+    var arr=answerList(q.answer);
+    if(!arr.length||arr.some(function(a){return !(a>=1&&a<=q.choices.length)})||arr.length!==new Set(arr).size) throw new Error(n+"（"+q.id+"）：answer は 1〜"+q.choices.length+" の番号にしてください（2つ以上なら 2;4 のように「;」区切り）");
+    q.answer=arr.length===1?arr[0]:arr; q.field=q.field||"未分類";
+  });
+  return b;
+}
+function parseCSV(text){
+  var rows=[],row=[],cur="",inq=false;
+  text=text.replace(/^\uFEFF/,"");
+  for(var i=0;i<text.length;i++){
+    var c=text[i];
+    if(inq){ if(c=='"'){ if(text[i+1]=='"'){cur+='"';i++} else inq=false } else cur+=c }
+    else if(c=='"') inq=true;
+    else if(c==','){row.push(cur);cur=""}
+    else if(c=='\n'||c=='\r'){ if(c=='\r'&&text[i+1]=='\n')i++; row.push(cur);cur=""; if(row.join("")!=="")rows.push(row); row=[] }
+    else cur+=c;
+  }
+  row.push(cur); if(row.join("")!=="")rows.push(row);
+  var h=rows.shift().map(function(s){return s.trim()});
+  function split(s){return (s||"").split(";").map(function(x){return x.trim()})}
+  var qs=rows.map(function(r,ri){
+    var o={};h.forEach(function(k,j){o[k]=(r[j]||"").trim()});
+    var ch=[];for(var n=1;n<=5;n++){ if(o["choice"+n]||o["choice"+n+"_image"]){
+      var img=o["choice"+n+"_image"]||""; ch.push(img?{text:o["choice"+n],image:img,alt:o["choice"+n+"_alt"]||o["choice"+n]}:o["choice"+n]) } }
+    var files=(o.images||o.image||"")?split(o.images||o.image).filter(function(x){return x!==""}):[];
+    var alts=split(o.image_alts||o.image_alt||"");
+    if(alts.length>files.length&&files.length) throw new Error((ri+2)+"行目（"+o.id+"）：image_alts の数が images より多いです");
+    var q={id:o.id,field:o.field,q:o.q,choices:ch,answer:o.answer,explain:o.explain||"",source:o.source||"",reviewed:/^(true|1|済|はい)$/i.test(o.reviewed||"")};
+    var sens=split(o.sensitive_images||"").filter(function(x){return x!==""});
+    if(files.length) q.images=files.map(function(f,k){return {file:f,alt:alts[k]||"",sensitive:sens.indexOf(f)>=0}});
+    return q;
+  });
+  return {title:"2年生 自習クイズ",version:"csv-"+new Date().toISOString().slice(0,10),isSample:false,questions:qs};
+}
+
+/* ===== 画像の問題点の記録（先生用チェックに出す） ===== */
+function logIssue(qid,file,reason){
+  var L=load("imgIssues",[]);
+  if(!L.some(function(x){return x.qid===qid&&x.file===file&&x.reason===reason})){L.push({qid:qid,file:file,reason:reason,at:new Date().toISOString()});save("imgIssues",L)}
+}
+
+/* ===== 乱数・抽選 ===== */
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function fields(bank){var f=[];bank.questions.forEach(function(q){if(f.indexOf(q.field)<0)f.push(q.field)});return f}
+/* 2つ以上選ぶ問題の採点：正解を全部選び、ほかを選ばないときだけ正解。部分点なし。
+   決定ボタンは正解の数と同じ数を選んだときだけ押せる。採点はこの関数1か所。 */
+function credit(chosen,answerPos,multi){
+  var right=chosen.filter(function(c){return answerPos.indexOf(c)>=0}).length,wrong=chosen.length-right;
+  if(!multi) return (chosen.length===1&&right===1)?1:0;
+  return (right===answerPos.length&&wrong===0)?1:0;
+}
+window.zen2qCredit=credit;window.zen2qHu=hu; /* テスト用に採点関数だけ見せる */
+function perRound(){var s=load("settings",{});return s.perRound||DEFAULT_PER_ROUND}
+function roundSize(bank){var n=perRound();return n==="all"?bank.questions.length:Math.min(n,bank.questions.length)}
+function isAllMode(bank){var n=perRound();return n==="all"||bank.questions.length<=n}
+/* 問題数が1回分以下なら全問を並べ替えて出す。多ければ分野ごとに均等に引き、直前の回と全く同じ組み合わせは避ける */
+function draw(bank){
+  var qs=bank.questions,n=roundSize(bank);
+  if(isAllMode(bank)) return shuffle(qs);
+  var last=load("lastSet",[]).slice().sort().join("|");
+  for(var tries=0;tries<30;tries++){
+    var by={};qs.forEach(function(q){(by[q.field]=by[q.field]||[]).push(q)});
+    var keys=shuffle(Object.keys(by)),quota={},used=0;
+    keys.forEach(function(k){by[k]=shuffle(by[k]);var e=n*by[k].length/qs.length;quota[k]=Math.floor(e);used+=quota[k];by[k].rem=e-quota[k]+Math.random()*1e-6});
+    keys.slice().sort(function(a,b){return by[b].rem-by[a].rem}).forEach(function(k){if(used<n&&quota[k]<by[k].length){quota[k]++;used++}});
+    var pick=[];keys.forEach(function(k){pick=pick.concat(by[k].slice(0,quota[k]))});
+    pick=shuffle(pick);
+    var sig=pick.map(function(q){return q.id}).sort().join("|");
+    if(sig!==last||tries==29) return pick;
+  }
+}
+/* 選択肢は「文字と画像をまとめた1つの物」として並べ替える（画像が別の選択肢に移らない） */
+function prepare(q){
+  var cs=qChoices(q),idx=shuffle(cs.map(function(_,i){return i}));
+  var ans=answerList(q.answer);
+  return {src:q,choices:idx.map(function(i){return cs[i]}),answerPos:ans.map(function(a){return idx.indexOf(a-1)}).sort(function(x,y){return x-y}),multi:ans.length>1};
+}
+
+/* ===== 表示の部品 ===== */
+var app=document.getElementById("app"),state=null;
+function $(id){return document.getElementById(id)}
+/* 下線：データの [u]…[/u] だけを <u> にする。先に h() で全部エスケープしてから決まった文字列を置きかえるので、データからHTMLは入らない */
+function uOK(s){var d=0,m,re=/\[(\/?)u\]/g;s=String(s==null?"":s);while((m=re.exec(s))){d+=m[1]?-1:1;if(d<0||d>1)return false}return d===0}
+function hu(s){var t=h(s);if(!uOK(s))return t.replace(/\[\/?u\]/g,"");return t.replace(/\[u\]/g,'<u class="ul">').replace(/\[\/u\]/g,"</u>")}
+function h(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function errBox(qid,file,reason){return '<div class="imgerr" data-test="img-error" data-qid="'+h(qid)+'" data-file="'+h(file)+'">⚠ 画像を表示できません（'+h(qid)+'：'+h(file||"なし")+'）<br>'+h(reason)+'<br>この問題は先生に知らせてください。</div>'}
+/* 画像1枚。どの問題の画像かを data-qid に持たせ、問題のレコードから直接 src を作る */
+function imgSrc(file){return (window.QUIZ_IMG&&Object.prototype.hasOwnProperty.call(window.QUIZ_IMG,file))?window.QUIZ_IMG[file]:"images/"+file}
+function imgTag(qid,file,alt,kind,extra){
+  var p=refProblem(file);
+  if(p){logIssue(qid,file,p);return errBox(qid,file,p)}
+  return '<img class="qimg" src="'+h(imgSrc(file))+'" alt="'+h(alt||(qid+" の図"))+'" data-qid="'+h(qid)+'" data-file="'+h(file)+'" data-kind="'+kind+'"'+(extra||"")+' loading="eager">';
+}
+function figures(q,thumb){
+  var ims=qImages(q); if(!ims.length) return "";
+  return '<div class="figs'+(thumb?" thumb":"")+'" data-test="figs" data-qid="'+h(q.id)+'">'+ims.map(function(im,k){
+    return '<figure>'+imgTag(q.id,im.file,im.alt,"q",' data-idx="'+k+'"')+(ims.length>1?'<figcaption>図'+(k+1)+'（'+h(q.id)+'）</figcaption>':'')+'</figure>'}).join("")+'</div>';
+}
+/* 画像のエラー処理と拡大表示を、描いた後に付ける */
+function wireImages(root){
+  root.querySelectorAll("img.qimg").forEach(function(img){
+    function fail(){ if(!img.parentNode) return; logIssue(img.dataset.qid,img.dataset.file,"画像ファイルが見つかりません");
+      var d=document.createElement("div");d.innerHTML=errBox(img.dataset.qid,img.dataset.file,"画像ファイルが見つかりません");img.parentNode.replaceChild(d.firstChild,img)}
+    img.addEventListener("error",fail);
+    if(img.complete&&img.naturalWidth===0&&img.getAttribute("src")) fail();
+    if(img.dataset.kind==="q") img.addEventListener("click",function(e){e.stopPropagation();openViewer(img)});
+  });
+}
+function sampleBanner(b){return ""}
+function allNote(b){return isAllMode(b)?'<div class="note" data-test="all-note">この問題データは全'+b.questions.length+'問です。'+(perRound()==="all"?"":'1回'+perRound()+'問に満たないため、')+'毎回全'+b.questions.length+'問を順番を入れ替えて出します。</div>':""}
+
+/* ===== 拡大表示（ピンチ・ドラッグ・ボタン） ===== */
+var V={s:1,x:0,y:0,ptr:{},start:null};
+function vApply(){var im=$("vImg");im.style.transform="translate("+V.x+"px,"+V.y+"px) scale("+V.s+")";im.dataset.scale=V.s.toFixed(2)}
+function vSet(s){V.s=Math.max(1,Math.min(6,s));if(V.s===1){V.x=0;V.y=0}vApply()}
+function openViewer(img){
+  var vi=$("vImg");vi.src=img.getAttribute("src");vi.alt=img.alt;vi.dataset.qid=img.dataset.qid;vi.dataset.file=img.dataset.file;
+  $("vCap").textContent=img.dataset.qid+"："+(img.alt||"");V.s=1;V.x=0;V.y=0;vApply();$("viewer").classList.remove("hidden");
+}
+function closeViewer(){$("viewer").classList.add("hidden");$("vImg").removeAttribute("src")}
+$("vClose").onclick=closeViewer;$("vZoomIn").onclick=function(){vSet(V.s*1.5)};$("vZoomOut").onclick=function(){vSet(V.s/1.5)};$("vReset").onclick=function(){vSet(1)};
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeViewer()});
+(function(){var st=$("vStage");
+  function dist(){var p=Object.keys(V.ptr).map(function(k){return V.ptr[k]});return Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)}
+  st.addEventListener("pointerdown",function(e){st.setPointerCapture&&st.setPointerCapture(e.pointerId);V.ptr[e.pointerId]={x:e.clientX,y:e.clientY};
+    var n=Object.keys(V.ptr).length; V.start=n>=2?{d:dist(),s:V.s}:{px:e.clientX,py:e.clientY,x:V.x,y:V.y}});
+  st.addEventListener("pointermove",function(e){if(!V.ptr[e.pointerId])return;V.ptr[e.pointerId]={x:e.clientX,y:e.clientY};
+    var n=Object.keys(V.ptr).length;
+    if(n>=2&&V.start&&V.start.d){vSet(V.start.s*dist()/V.start.d)}
+    else if(n===1&&V.start&&V.start.px!=null&&V.s>1){V.x=V.start.x+e.clientX-V.start.px;V.y=V.start.y+e.clientY-V.start.py;vApply()}});
+  function up(e){delete V.ptr[e.pointerId];V.start=null;var k=Object.keys(V.ptr);if(k.length===1){var p=V.ptr[k[0]];V.start={px:p.x,py:p.y,x:V.x,y:V.y}}}
+  st.addEventListener("pointerup",up);st.addEventListener("pointercancel",up);
+  st.addEventListener("wheel",function(e){e.preventDefault();vSet(V.s*(e.deltaY<0?1.2:1/1.2))},{passive:false});
+})();
+
+/* ===== 画面 ===== */
+function showStart(){
+  var b=getBank(),hist=load("history",[]),rv=load("review",[]);
+  var lastTxt=hist.length?("前回 "+hist[hist.length-1].score+"点（"+hist.length+"回目）"):"まだ記録はありません";
+  app.innerHTML=sampleBanner(b)+
+  '<div class="card"><h2 style="margin-top:0">歯科衛生士 2年生 自習クイズ</h2>'+
+  '<p>毎回ちがう問題が<b data-test="round-size">'+roundSize(b)+'問</b>出ます。何回でも挑戦できます。</p>'+allNote(b)+
+  '<p class="meta">問題数 '+b.questions.length+'問／分野 '+fields(b).length+'つ／'+lastTxt+'</p>'+
+  '<button class="btn" id="go" data-test="start">はじめる</button>'+
+  '<button class="btn sub" id="rv" data-test="review"'+(rv.length?"":" disabled")+'>間違えた問題を復習（'+rv.length+'問）</button>'+
+  '<button class="btn sub" id="hs" data-test="history">これまでの点数</button></div>'+
+  '<p class="meta">名前や学籍番号は入力しません。記録はこのスマホのブラウザの中だけに残り、外には送られません。図は画面をタップすると拡大できます。</p>';
+  $("go").onclick=function(){startRound("test")};
+  $("rv").onclick=function(){startRound("review")};
+  $("hs").onclick=showHistory;
+}
+function startRound(mode){
+  var b=getBank(),list;
+  if(mode=="review"){var ids=load("review",[]);list=shuffle(b.questions.filter(function(q){return ids.indexOf(q.id)>=0}));if(!list.length)return showStart()}
+  else list=draw(b);
+  state={mode:mode,items:list.map(prepare),i:0,answers:[]};
+  showQuestion();
+}
+function showQuestion(){
+  var it=state.items[state.i],n=state.items.length,sel=[],need=it.answerPos.length;
+  app.innerHTML=(state.mode=="review"?'<div class="banner">復習モード：点数の記録には入りません</div>':"")+
+  (state.i===0&&state.mode!="review"?allNote(getBank()):"")+
+  '<div class="card" data-test="qcard" data-qid="'+h(it.src.id)+'" data-multi="'+(it.multi?1:0)+'"><div class="meta">'+(state.i+1)+' / '+n+' 問　'+h(it.src.field)+'</div><div class="bar"><div style="width:'+(state.i/n*100)+'%"></div></div>'+
+  '<div data-test="qtext" data-qid="'+h(it.src.id)+'" class="qtext"><b>'+hu(it.src.q)+'</b></div>'+
+  (it.multi?'<div class="mhint" data-test="multi-hint">'+need+'つ選んでください</div>':'')+
+  figures(it.src,false)+
+  it.choices.map(function(c,k){return '<button class="choice" data-k="'+k+'" data-test="choice">'+(it.multi?'<span class="box">☐</span>':'')+(k+1)+'. <span class="ctext">'+hu(c.text)+'</span>'+(c.image?'<span class="cimg">'+imgTag(it.src.id,c.image,c.alt,"c",' data-choice="'+h(c.text)+'"')+'</span>':'')+'</button>'}).join("")+
+  '<div id="fb"></div><button class="btn" id="next" data-test="answer" disabled>'+(it.multi?'決定':'こたえる')+'</button></div>'+
+  '<button class="btn sub" id="quit">やめてトップへ</button>';
+  wireImages(app);
+  var btns=app.querySelectorAll(".choice"),nx=$("next"),answered=false;
+  btns.forEach(function(b){b.onclick=function(){if(answered)return;var k=Number(b.dataset.k);
+    if(it.multi){var p=sel.indexOf(k);if(p>=0)sel.splice(p,1);else sel.push(k);
+      btns.forEach(function(x,j){var on=sel.indexOf(j)>=0;x.classList.toggle("sel",on);var bx=x.querySelector(".box");if(bx)bx.textContent=on?"☑":"☐"});
+      nx.disabled=sel.length!==need; nx.textContent=sel.length===need?"決定":"決定（あと"+(need-sel.length)+"つ）"; if(sel.length>need){nx.textContent="選びすぎです（"+need+"つまで）"}}
+    else{sel=[k];btns.forEach(function(x){x.classList.remove("sel")});b.classList.add("sel");nx.disabled=false}}});
+  nx.onclick=function(){
+    if(!answered){
+      answered=true;var cr=credit(sel,it.answerPos,it.multi),ok=cr===1;
+      state.answers.push({id:it.src.id,ok:ok,credit:cr,chosen:sel.map(function(k){return it.choices[k].text})});
+      it.answerPos.forEach(function(p){btns[p].classList.add("ok")}); sel.forEach(function(k){if(it.answerPos.indexOf(k)<0)btns[k].classList.add("ng")});
+      var ansTxt=it.answerPos.map(function(p){return p+1}).join("と");
+      $("fb").innerHTML='<p data-test="feedback" class="'+(ok?"up":"down")+'">'+(ok?"正解！":"不正解"+"（正解は "+ansTxt+"）")+'</p>'+(it.src.explain?'<div class="exp">'+hu(it.src.explain)+'</div>':"");
+      nx.disabled=false; nx.textContent=state.i+1<state.items.length?"次の問題へ":"結果を見る"; nx.dataset.test="next";
+    } else { state.i++; state.i<state.items.length?showQuestion():finish() }
+  };
+  $("quit").onclick=function(){if(confirm("この回をやめますか？（記録は残りません）"))showStart()};
+}
+function wrongList(ans){
+  var b=getBank(),wr=ans.filter(function(a){return !a.ok});
+  if(!wr.length) return "";
+  return '<h3>間違えた問題</h3><div data-test="wrong-list">'+wr.map(function(a){
+    var q=b.questions.filter(function(x){return x.id===a.id})[0]; if(!q) return "";
+    var cs=qChoices(q),c={text:answerList(q.answer).map(function(a){return cs[a-1].text}).join("、")};
+    return '<div class="card" style="box-shadow:none;border:1px solid #eee" data-test="wrong-item" data-qid="'+h(q.id)+'"><div class="meta">'+h(q.field)+'</div><div>'+hu(q.q)+'</div>'+figures(q,true)+
+      '<div class="meta">正解：'+hu(c.text)+'</div></div>'}).join("")+'</div>';
+}
+function finish(){
+  var ans=state.answers,correct=ans.filter(function(a){return a.ok}).length,pts=ans.reduce(function(t,a){return t+(a.credit==null?(a.ok?1:0):a.credit)},0),score=Math.round(pts/ans.length*100);
+  var rv=load("review",[]);
+  ans.forEach(function(a){var p=rv.indexOf(a.id);if(!a.ok&&p<0)rv.push(a.id);if(a.ok&&p>=0&&state.mode=="review")rv.splice(p,1)});
+  save("review",rv);
+  if(state.mode=="review"){
+    app.innerHTML='<div class="card"><h2 style="margin-top:0">復習おわり</h2><p>'+ans.length+'問中 '+correct+'問 正解。</p><p>復習リストの残り：<b data-test="review-left">'+rv.length+'</b>問</p><p class="meta">復習の結果は点数の記録に入りません。</p><button class="btn" id="home">トップへ</button></div>';
+    $("home").onclick=showStart;return;
+  }
+  var hist=load("history",[]),prev=hist.length?hist[hist.length-1].score:null;
+  hist.push({n:hist.length+1,at:new Date().toISOString(),score:score,correct:correct,total:ans.length,bank:getBank().version});
+  save("history",hist); save("lastSet",ans.map(function(a){return a.id}));
+  var diff=prev===null?"":(score-prev>=0?'<span class="up">前回より ＋'+(score-prev)+'点</span>':'<span class="down">前回より '+(score-prev)+'点</span>');
+  app.innerHTML='<div class="card"><div class="meta">'+hist.length+'回目の結果</div><div class="score" data-test="score">'+score+'点</div>'+
+  '<p style="text-align:center">'+ans.length+'問中 '+correct+'問 正解<br><span data-test="diff">'+(diff||"はじめての記録です")+'</span></p>'+
+  historyTable(hist)+
+  (ans.some(function(a){return !a.ok})?'<p>間違えた問題は「復習」に入りました（'+rv.length+'問）。</p>':'<p class="up">全問正解！</p>')+
+  '<button class="btn" id="again" data-test="again">もう一回（ちがう問題）</button><button class="btn sub" id="rv2"'+(rv.length?"":" disabled")+'>間違えた問題を復習</button><button class="btn sub" id="home">トップへ</button></div>'+
+  '<div class="card">'+wrongList(ans)+'</div>';
+  wireImages(app);
+  $("again").onclick=function(){startRound("test")}; $("rv2").onclick=function(){startRound("review")}; $("home").onclick=showStart;
+}
+function historyTable(hist){
+  if(!hist.length)return '<p class="meta">まだ記録はありません。</p>';
+  var rows=hist.map(function(r,i){var d=i?r.score-hist[i-1].score:null;
+    return '<tr><td>'+r.n+'回目</td><td>'+r.score+'点</td><td>'+(d===null?"―":(d>=0?'<span class="up">＋'+d+'</span>':'<span class="down">'+d+'</span>'))+'</td><td class="meta">'+new Date(r.at).toLocaleDateString("ja-JP")+'</td></tr>'}).reverse();
+  return '<table data-test="history-table"><tr><th>回</th><th>点数</th><th>前回比</th><th>日付</th></tr>'+rows.join("")+'</table>';
+}
+function showHistory(){
+  var hist=load("history",[]);
+  var first=hist[0],second=hist[1],latest=hist[hist.length-1];
+  app.innerHTML='<div class="card"><h2 style="margin-top:0">これまでの点数</h2>'+
+  (hist.length?'<p>1回目 '+first.score+'点'+(second?' → 2回目 '+second.score+'点':'')+(hist.length>=3?' → 最新（'+latest.n+'回目） '+latest.score+'点':'')+'</p>':"")+
+  historyTable(hist)+'<button class="btn" id="home">トップへ</button></div>';
+  $("home").onclick=showStart;
+}
+/* ===== 先生用：画像の点検 ===== */
+function teacherCheck(done){
+  var b=getBank(),refs=[],users={};
+  b.questions.forEach(function(q){
+    qImages(q).forEach(function(im){refs.push({qid:q.id,file:im.file,where:"問題の図",alt:im.alt})});
+    qChoices(q).forEach(function(c,k){if(c.image)refs.push({qid:q.id,file:c.image,where:"選択肢"+(k+1),alt:c.alt})});
+  });
+  refs.forEach(function(r){(users[r.file]=users[r.file]||[]).push(r.qid)});
+  var pending=refs.length,res=[];
+  if(!pending) return done({refs:refs,bad:[],users:users});
+  refs.forEach(function(r){
+    var p=refProblem(r.file);
+    if(p){res.push({r:r,ok:false,why:p});if(--pending===0)done({refs:refs,bad:res,users:users});return}
+    var im=new Image();
+    im.onload=function(){if(!r.alt)res.push({r:r,ok:true,why:"説明文（alt）がありません"});if(--pending===0)done({refs:refs,bad:res,users:users})};
+    im.onerror=function(){res.push({r:r,ok:false,why:"画像ファイルが見つかりません"});logIssue(r.qid,r.file,"画像ファイルが見つかりません");if(--pending===0)done({refs:refs,bad:res,users:users})};
+    im.src=imgSrc(r.file);
+  });
+}
+function showSettings(){
+  var b=getBank(),fromFile=!!load("bank",null),cur=perRound();
+  var unrev=b.questions.filter(function(q){return !q.reviewed}).length;
+  app.innerHTML='<div class="card"><h2 style="margin-top:0">設定</h2>'+
+  '<label>1回に出す問題数</label><select id="per" data-test="per">'+[10,20,25,30,50,"all"].map(function(n){return '<option value="'+n+'"'+(String(n)===String(cur)?" selected":"")+'>'+(n==="all"?"全問":n+"問")+(n===DEFAULT_PER_ROUND?"（標準）":"")+'</option>'}).join("")+'</select>'+
+  '<p class="meta">問題データが選んだ数より少ないときは、全問を順番を入れ替えて出します。</p>'+
+  '<button class="btn" id="saveS">保存</button></div>'+
+  '<div class="card"><h3 style="margin-top:0">記録を消す</h3><p class="meta">このスマホに残っている点数や復習リストを消します。元に戻せません。</p>'+
+  '<button class="btn warn" id="rh" data-test="reset-history">点数の記録を消す</button><button class="btn warn" id="rr" data-test="reset-review">復習リストを消す</button></div>'+
+  '<div class="card"><h3 style="margin-top:0">問題データ（先生用）</h3><p class="meta">いまの問題：'+h(b.title)+'（'+b.questions.length+'問・'+h(b.version)+'）'+(fromFile?'／読み込んだデータ':'／最初から入っているデータ')+'／監修前 '+unrev+'問</p>'+
+  '<label>CSV か JSON を読み込む</label><input type="file" id="file" data-test="file" accept=".csv,.json,text/csv,application/json"><div id="msg" class="meta"></div>'+
+  (fromFile?'<button class="btn sub" id="def">最初のデータに戻す</button>':"")+
+  '<button class="btn sub" id="chk" data-test="teacher-check">画像の点検（先生用）</button><div id="chkOut" data-test="check-out"></div>'+
+  '<p class="meta">画像は app/images/ に置き、CSV の images 列にファイル名を書きます。<b>患者さんが特定できる情報（氏名・顔・カルテ番号など）が写った画像は使わないでください。</b>先生が点検してから配ります。</p></div>'+
+  '<button class="btn sub" id="home">トップへ</button>';
+  $("saveS").onclick=function(){var v=$("per").value;save("settings",{perRound:v==="all"?"all":Number(v)});showStart()};
+  $("rh").onclick=function(){if(confirm("点数の記録をすべて消しますか？")){del("history");del("lastSet");showSettings()}};
+  $("rr").onclick=function(){if(confirm("復習リストを消しますか？")){del("review");showSettings()}};
+  $("file").onchange=function(){var f=$("file").files[0];if(!f)return;var r=new FileReader();r.onload=function(){
+    try{var nb=/\.json$/i.test(f.name)?JSON.parse(r.result):parseCSV(r.result);validate(nb);
+      if(!confirm(nb.questions.length+"問を読み込みます。点数の記録と復習リストは消えます。よろしいですか？"))return;
+      save("bank",nb);del("history");del("review");del("lastSet");del("imgIssues");showSettings();}
+    catch(e){$("msg").textContent="読み込めませんでした："+e.message}};r.readAsText(f,"utf-8")};
+  if(fromFile)$("def").onclick=function(){if(confirm("最初のデータに戻しますか？（記録も消えます）")){del("bank");del("history");del("review");del("lastSet");del("imgIssues");showSettings()}};
+  $("chk").onclick=function(){$("chkOut").innerHTML='<p class="meta">点検中…</p>';teacherCheck(function(r){
+    var bad=r.bad.filter(function(x){return !x.ok}),warn=r.bad.filter(function(x){return x.ok});
+    var shared=Object.keys(r.users).filter(function(f){var u=r.users[f].filter(function(v,i,a){return a.indexOf(v)===i});return u.length>1});
+    var runtime=load("imgIssues",[]);
+    $("chkOut").innerHTML='<p data-test="check-summary">画像の参照 '+r.refs.length+'件：<b class="'+(bad.length?"down":"up")+'">問題あり '+bad.length+'件</b>／注意 '+warn.length+'件／共有画像 '+shared.length+'枚</p>'+
+      (bad.length?'<table data-test="check-bad"><tr><th>問題</th><th>画像</th><th>内容</th></tr>'+bad.map(function(x){return '<tr><td>'+h(x.r.qid)+'</td><td>'+h(x.r.file)+'<br><span class="meta">'+h(x.r.where)+'</span></td><td class="down">'+h(x.why)+'</td></tr>'}).join("")+'</table>':"")+
+      (warn.length?'<p class="meta">注意：'+warn.map(function(x){return h(x.r.qid+"（"+x.r.file+"）"+x.why)}).join("、")+'</p>':"")+
+      (shared.length?'<p class="meta">複数の問題で使う画像：'+shared.map(function(f){return h(f+" → "+r.users[f].join("・"))}).join("、")+'</p>':"")+
+      (runtime.length?'<p class="meta">学習中に見つかった表示エラー（このスマホ）：'+runtime.map(function(x){return h(x.qid+"："+x.file)}).join("、")+'</p>':"");
+  })};
+  $("home").onclick=showStart;
+}
+$("btnSettings").onclick=showSettings;
+try{validate(getBank())}catch(e){app.innerHTML='<div class="card">問題データにまちがいがあります：'+h(e.message)+'</div>';return}
+showStart();
+})();
+</script>
+</body>
+</html>
